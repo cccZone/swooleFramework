@@ -1,0 +1,11 @@
+{
+    "require-dev": {
+        "eaglewu/swoole-ide-helper": "dev-master"
+    },
+    "require": {
+        "psr/container": "^1.0",
+        "illuminate/database": "^5.4",
+        "php-di/php-di": "^5.4",
+        "igorw/config-service-provider": "^1.2"
+    }
+}
