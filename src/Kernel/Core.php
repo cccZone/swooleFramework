@@ -5,23 +5,44 @@ namespace Kernel;
 
 
 use DI\ContainerBuilder;
+use Swoole\Mysql\Exception;
 
 class Core
 {
+        public static $core = null;
         protected $container;
 
-        public function __construct(array $paths = [])
+        /**
+         * 核心类构造
+         * Core constructor.
+         * @param array $paths
+         * @param array $confPath
+         */
+        public function __construct(array $paths = [], array $confPath = [])
         {
+                $this->isOne();
                 $this->autoload($paths);
                 $containerBuilder = new ContainerBuilder('\Kernel\Core\Di\Container');
                 $containerBuilder->addDefinitions([
                         'server'        =>      \Kernel\Swoole\SwooleTcpServer::getInstance(),
-                        'conf'          =>      \Kernel\Core\Conf\Config::getInstance()
+                        'conf'          =>      \Kernel\Core\Conf\Config::getInstance($confPath)
                 ]);
                 $this->container = $containerBuilder->build();
+                //加载配置文件
                 $this->get('conf')->load();
         }
 
+        private function isOne()
+        {
+                if(self::$core !== null) {
+                        throw new Exception('core is construct');
+                }
+                self::$core = $this;
+        }
+        /**
+         * 注册加载SRC下文件
+         * @param array $paths
+         */
         public function autoload(array $paths = [])
         {
                 if(empty($paths)) {
@@ -39,6 +60,10 @@ class Core
                 });
         }
 
+        /**
+         * 加载默认
+         * @param array $maps
+         */
         public function initLoad(array $maps = []) {
                 if(empty($maps)) {
                         return ;
@@ -48,6 +73,11 @@ class Core
                 }
         }
 
+        /**
+         * 获取指定对象
+         * @param $name
+         * @return mixed
+         */
         public function get($name) {
                 return $this->container->get($name);
         }
