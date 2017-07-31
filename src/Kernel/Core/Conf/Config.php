@@ -14,14 +14,12 @@ class Config
 {
         protected static $instant = null;
         protected $driver = null;
-        protected $paths = [];
+        protected $paths = [ '../conf'];
         protected $type = 'php';
         protected $configs = [];
         public function __construct($paths = [], $type = 'php')
         {
-                $this->paths = [
-                        '../conf'
-                ];
+                $this->paths = array_merge($this->paths, $paths);
                 $this->type = $type;
         }
 

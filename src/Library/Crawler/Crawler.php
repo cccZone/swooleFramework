@@ -27,15 +27,7 @@ class Crawler
         {
                 //
               //  $pattern = '#((http|ftp|https)://(\S*?\.\S*?))([\s)\[\]{},;"\':<]|\.\s|$)#i';
-                $pattern = '#(http|ftp|https)://?([a-z0-9_-]+\.)+(com|net|cn|org){1}(\/[a-z0-9_-]+)*\.?(?!:jpg|jpeg|gif|png|bmp)(?:")#i';
-                preg_match_all($pattern, $content, $matched);
-                foreach ($matched[0] as $url) {
-                        if (in_array($url, $this->toVisit)) {
-                                continue;
-                        }
-                        $this->toVisit[] = rtrim($url,'"');
-                        file_put_contents('urls',$url."\r\n",FILE_APPEND);
-                }
+
         }
 
         private function visitAll()
@@ -82,7 +74,6 @@ class Crawler
                                                 file_put_contents('c',$key.":".$item."\r\n",FILE_APPEND);
                                         }
                                         file_put_contents('c',"\r\n",FILE_APPEND);
-
                                 }
 
                                 $cli->close();

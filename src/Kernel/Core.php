@@ -18,8 +18,8 @@ class Core
                         'server'        =>      \Kernel\Swoole\SwooleTcpServer::getInstance(),
                         'conf'          =>      \Kernel\Core\Conf\Config::getInstance()
                 ]);
-
                 $this->container = $containerBuilder->build();
+                $this->get('conf')->load();
         }
 
         public function autoload(array $paths = [])
