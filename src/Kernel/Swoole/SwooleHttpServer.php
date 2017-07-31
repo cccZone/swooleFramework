@@ -9,7 +9,7 @@ use Kernel\Server;
 class SwooleHttpServer implements Server
 {
         const EVENT = [
-                'close','connect','managerStart','receive','shutdown','start','workerStart','workerStop'
+                'request'
         ];
         protected $server;
         public static $instance = null;
@@ -17,8 +17,8 @@ class SwooleHttpServer implements Server
         {
                 $this->server = new \swoole_http_server($host, $port, $mode, SWOOLE_SOCK_TCP);
                 foreach (self::EVENT as $event) {
-                        $class = '\\Kernel\\Swoole\\Event\\'.ucfirst($event);
-                        $callback = new $class();
+                        $class = '\\Kernel\\Swoole\\Event\\Http\\'.ucfirst($event);
+                        $callback = new $class;
                         $this->server->on($event, [$callback, 'doEvent']);
                 }
 

@@ -17,7 +17,7 @@ class SwooleWebsocketServer implements Server
         {
                 $this->server = new \swoole_http_server($host, $port, $mode, SWOOLE_SOCK_TCP);
                 foreach (self::EVENT as $event) {
-                        $class = '\\Kernel\\Swoole\\Event\\'.ucfirst($event);
+                        $class = '\\Kernel\\Swoole\\Event\\WebSocket\\'.ucfirst($event);
                         $callback = new $class();
                         $this->server->on($event, [$callback, 'doEvent']);
                 }

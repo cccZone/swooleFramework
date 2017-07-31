@@ -24,9 +24,9 @@ class Core
                 $this->autoload($paths);
                 $containerBuilder = new ContainerBuilder('\Kernel\Core\Di\Container');
                 $containerBuilder->addDefinitions([
-                        'tcp'           =>      \Kernel\Swoole\SwooleTcpServer::getInstance(),
+                //        'tcp'           =>      \Kernel\Swoole\SwooleTcpServer::getInstance(),
                         'http'          =>      \Kernel\Swoole\SwooleHttpServer::getInstance(),
-                        'websocket'     =>      \Kernel\Swoole\SwooleWebsocketServer::getInstance(),
+                //        'websocket'     =>      \Kernel\Swoole\SwooleWebsocketServer::getInstance(),
                         'conf'          =>      \Kernel\Core\Conf\Config::getInstance($confPath)
                 ]);
                 $this->container = $containerBuilder->build();
