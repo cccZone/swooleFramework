@@ -6,9 +6,9 @@ namespace Kernel\Swoole\Event;
 
 class Close implements Event
 {
-        public function doEvent($fd)
+        public function doEvent($server, $fd)
         {
-                echo "{$fd} closed";
+                echo "{$fd} closed\r\n";
         }
 
 }

@@ -73,9 +73,14 @@ class Config
                 }
         }
 
-        public function __get($name)
+        public function get(string $name)
         {
                 return $this->configs[$name] ?? '';
+        }
+
+        public function __get($name)
+        {
+                return $this->get($name);
         }
 
         public static function getInstance(array $paths = [])

@@ -6,6 +6,6 @@ namespace Kernel;
 
 interface Server
 {
-        public function start(\Closure $callback) : Server;
-        public function shutdown(\Closure $callback) : Server;
+        public function start(\Closure $callback = null) : Server;
+        public function shutdown(\Closure $callback = null) : Server;
 }

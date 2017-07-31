@@ -36,14 +36,13 @@ class SwooleTcpServer implements Server
                 return self::$instance;
         }
 
-        public function start(\Closure $callback): Server
+        public function start(\Closure $callback = null): Server
         {
-                echo memory_get_usage();
              $this->server->start();
              return $this;
         }
 
-        public function shutdown(\Closure $callback): Server
+        public function shutdown(\Closure $callback = null): Server
         {
                 // TODO: Implement shutdown() method.
         }
