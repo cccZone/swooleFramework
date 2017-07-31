@@ -11,7 +11,7 @@ class Start implements Event
         use EventTrait;
         public function doEvent()
         {
-                echo 'start';
+                echo "start\r\n";
                 // TODO: Implement doEvent() method.
         }
 }

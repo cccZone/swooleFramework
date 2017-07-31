@@ -5,6 +5,7 @@ namespace Kernel\Swoole;
 
 
 use Kernel\Server;
+use Psr\Container\ContainerInterface;
 
 class SwooleHttpServer implements Server
 {
@@ -13,9 +14,13 @@ class SwooleHttpServer implements Server
         ];
         protected $server;
         public static $instance = null;
-        private function __construct($host = '0.0.0.0', $port = '9550', $mode = SWOOLE_PROCESS)
+        private function __construct(ContainerInterface $container)
         {
-                $this->server = new \swoole_http_server($host, $port, $mode, SWOOLE_SOCK_TCP);
+                $config = $container->get('config')->get('server');
+                if(empty($config)) {
+                        throw new \Exception('config not found');
+                }
+                $this->server = new \swoole_http_server($config['host'], $config['port'], $config['mode'], $config['type']);
                 foreach (self::EVENT as $event) {
                         $class = '\\Kernel\\Swoole\\Event\\Http\\'.ucfirst($event);
                         $callback = new $class;
@@ -24,14 +29,10 @@ class SwooleHttpServer implements Server
 
         }
 
-        public static function getInstance($config = [])
+        public static function getInstance(ContainerInterface $container)
         {
                 if(self::$instance == null) {
-                        if(empty($config)) {
-                                self::$instance = new self();
-                        }else{
-                                self::$instance = new self($config['host'], $config['port'], $config['mode']);
-                        }
+                        self::$instance = new self($container);
                 }
                 return self::$instance;
         }

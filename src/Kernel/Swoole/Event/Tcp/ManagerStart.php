@@ -11,7 +11,7 @@ class ManagerStart implements Event
         use EventTrait;
         public function doEvent()
         {
-                echo 'ManagerStart';
+                echo "ManagerStart\r\n";
                 // TODO: Implement doEvent() method.
         }
 
