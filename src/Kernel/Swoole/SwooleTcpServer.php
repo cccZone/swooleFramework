@@ -17,7 +17,6 @@ class SwooleTcpServer implements Server
         public static $instance = null;
         public function __construct(Config $config)
         {
-                $config->load();
                 $config = $config->get('server');
                 if(empty($config)) {
                         throw new \Exception('config not found');

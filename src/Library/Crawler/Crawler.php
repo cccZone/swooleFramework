@@ -4,6 +4,7 @@
 namespace Library\Crawler;
 
 
+use Kernel\Core\Di\Container;
 use Library\Crawler\Download\Downloader;
 use Library\Crawler\Parse\Udn as Parse;
 use Library\Crawler\Url\Udn as Url;
@@ -24,26 +25,26 @@ class Crawler
 
         public function run()
         {
-                $url = $this->urlManager->getOne()->current();
-                echo memory_get_usage();
-                echo "\r\n";
-                if($url == '') {
-                        return;
-                }
-                $this->downloadManager->setUrl($url);
-                $this->downloadManager->download(function ($url, $content) {
-                        if($content !== '') {
-                                $this->parserManager->doParse($url, $content, $this->downloadManager->getUrlInfo('host'));
-                                $this->urlManager->setContent($url, $this->parserManager->getMeta());
-                                $urls = array_filter($this->parserManager->getUrls(), function ($v){
-                                        return $v!='';
-                                });
-                                $this->urlManager->addUrls($urls);
-                                $this->run();
-                        }else{
-                                $this->run();
+                //$url = $this->urlManager->getOne()->current();
+                while (true) {
+                        $url = $this->urlManager->getOne();
+                        echo memory_get_usage();
+                        echo "\r\n";
+                        if ($url == '') {
+                                return;
                         }
-                });
+                        $this->downloadManager->setUrl($url);
+                        $this->downloadManager->download(function ($url, $content){
+                                if ($content !== '') {
+                                        $this->parserManager->doParse($url, $content, $this->downloadManager->getUrlInfo('host'));
+                                        $this->urlManager->setContent($url, $this->parserManager->getMeta());
+                                        $urls = array_filter($this->parserManager->getUrls(), function ($v) {
+                                                return $v != '';
+                                        });
+                                        $this->urlManager->addUrls($urls);
+                                }
+                        });
+                }
         }
 
 }

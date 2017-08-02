@@ -75,6 +75,9 @@ class Config
 
         public function get(string $name)
         {
+                if(empty($this->configs)) {
+                        $this->load();
+                }
                 return $this->configs[$name] ?? '';
         }
 

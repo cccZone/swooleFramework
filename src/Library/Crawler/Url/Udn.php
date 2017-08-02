@@ -3,14 +3,22 @@
 
 namespace Library\Crawler\Url;
 
+
+use Kernel\Core\Conf\Config;
+
 class Udn
 {
         protected $urls = [];
-        protected $contents = [];
+        protected $got = [];
+        protected $db;
+        public function __construct(Config $config)
+        {
+
+        }
 
         public function addUrls(array $urls)
         {
-                $gets = array_keys($this->contents);
+                $gets = $this->got;
                 $this->urls = array_merge($this->urls, array_diff($urls, $gets));
                 $this->urls = array_unique($this->urls);
         }
@@ -18,16 +26,15 @@ class Udn
         public function getOne()
         {
                 if(count($this->urls)<=0) {
-                        yield '';
+                        return '';
                 }
                 $get = array_shift($this->urls);
-                $this->contents[$get] = '';
-                yield $get;
+                array_push($this->got, $get);
+                return $get;
         }
 
         public function setContent($url, $content)
         {
-                $this->contents[$url] = $content;
-                file_put_contents('content.txt',$url."\r\n".json_encode($content)."\r\n\r\n",FILE_APPEND);
+                $mongodb = new Mon
         }
 }
