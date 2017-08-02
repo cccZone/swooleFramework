@@ -17,7 +17,7 @@ class Config
         protected $paths = [ '../conf'];
         protected $type = 'php';
         protected $configs = [];
-        private function __construct($paths = [], $type = 'php')
+        public function __construct($paths = [], $type = 'php')
         {
                 $this->paths = array_merge($this->paths, $paths);
                 $this->type = $type;
@@ -83,12 +83,4 @@ class Config
                 return $this->get($name);
         }
 
-        public static function getInstance(array $paths = [])
-        {
-                if(self::$instant == null) {
-                        self::$instant = new self();
-                }
-                self::$instant->setLoadPath($paths);
-                return self::$instant;
-        }
 }

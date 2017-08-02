@@ -48,7 +48,7 @@ class SwooleHttpServer implements Server
                 // TODO: Implement shutdown() method.
         }
 
-        public function close($fd, $fromId = 0) : SwooleTcpServer
+        public function close($fd, $fromId = 0) : Server
         {
                 $this->server->close($fd, $fromId = 0);
                 return $this;

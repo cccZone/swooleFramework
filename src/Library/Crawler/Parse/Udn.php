@@ -9,74 +9,51 @@ class Udn
         protected $content;
         protected $url;
         protected $urls = [];
-        public function doParse($url, $content)
+        protected $hosts = [];
+        protected $meta = [];
+        public function doParse($url, $content, $host)
         {
                 $this->url = $url;
                 $this->content = $content;
-                $this->getMeta();
-                $this->getUrls();
+                $this->hosts = [$host];
+                $this->meta = $this->_getMeta();
+                $this->_getUrls();
         }
 
-        private function getMeta()
+        private function _getMeta()
         {
-                $data = $this->content;
-                if(empty($data)) {
-                        return;
-                }
-                $meta = [];
-                preg_match('/<TITLE>([\w\W]*?)<\/TITLE>/si', $data, $matches);
-                if (!empty($matches[1])) {
-                        $meta['title'] = $matches[1];
-                }
-                preg_match('/<META\s+name="keywords"\s+content="([\w\W]*?)"/si', $data, $matches);
-                if (empty($matches[1])) {
-                        preg_match("/<META\s+name='keywords'\s+content='([\w\W]*?)'/si", $data, $matches);
-                }
-                if (empty($matches[1])) {
-                        preg_match('/<META\s+content="([\w\W]*?)"\s+name="keywords"/si', $data, $matches);
-                }
-                if (empty($matches[1])) {
-                        preg_match('/<META\s+http-equiv="keywords"\s+content="([\w\W]*?)"/si', $data, $matches);
-                }
-                if (!empty($matches[1])) {
-                        $meta['keywords'] = $matches[1];
-                }
-                unset($matches);
-                #Description
-                preg_match('/<META\s+name="description"\s+content="([\w\W]*?)"/si', $data, $matches);
-                if (empty($matches[1])) {
-                        preg_match("/<META\s+name='description'\s+content='([\w\W]*?)'/si", $data, $matches);
-                }
-                if (empty($matches[1])) {
-                        preg_match('/<META\s+content="([\w\W]*?)"\s+name="description"/si', $data, $matches);
-                }
-                if (empty($matches[1])) {
-                        preg_match('/<META\s+http-equiv="description"\s+content="([\w\W]*?)"/si', $data, $matches);
-                }
-                if (!empty($matches[1])) {
-                        $meta['description'] = $matches[1];
-                }
-                unset($matches);
-                #image
-                $pattern="/<[img|IMG].*?src=[\'|\"](.*?(?:[\.gif|\.jpg|\.png]))[\'|\"].*?[\/]?>/";
-                preg_match_all($pattern,$data,$matches);
-                foreach ($matches as $key => $match) {
-                        if(isset($match[0]) and !empty($match[0])){
-                                if(strpos($match[0],'logo') === false) {
-                                        $meta['image'] = $match[0];
-                                }
-                        }
-                }
-                return $meta;
+                return Regular::getMeta($this->content);
         }
 
-        private function getUrls()
+        public function setHosts(array $hosts = [])
         {
-                $pattern = '#(http|ftp|https)://?([a-z0-9_-]+\.)+(com|net|cn|org){1}(\/[a-z0-9_-]+)*\.?(?!:jpg|jpeg|gif|png|bmp)(?:")#i';
-                preg_match_all($pattern, $this->content, $matched);
-                foreach ($matched[0] as $url) {
-                        $this->urls[] = $url;
-                }
+                $this->hosts = array_merge($this->hosts, $hosts);
+        }
+
+        public function getHosts():array
+        {
+                return $this->hosts;
+        }
+
+        public function getUrls():array
+        {
+                return $this->urls;
+        }
+
+        /**
+         * @return array
+         */
+        public function getMeta(): array
+        {
+                return empty($this->meta)?[] : $this->meta;
+        }
+
+
+
+        private function _getUrls()
+        {
+                $urlInfo = parse_url($this->url);
+                $this->urls = Regular::getUrls($this->content, $urlInfo['scheme']??'', $urlInfo['host']??'');
         }
 
 }

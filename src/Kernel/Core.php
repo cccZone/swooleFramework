@@ -3,8 +3,11 @@
 
 namespace Kernel;
 
-
-use DI\ContainerBuilder;
+use Kernel\Core\Conf\Config;
+use Kernel\Core\Di\Container;
+use Kernel\Swoole\SwooleTcpServer;
+use Library\Crawler\Crawler;
+use Library\Crawler\Download\Udn;
 use Swoole\Mysql\Exception;
 
 class Core
@@ -23,18 +26,11 @@ class Core
         {
                 $this->isOne();
                 $this->autoload($paths);
-                $containerBuilder = new ContainerBuilder('\Kernel\Core\Di\Container');
-                $containerBuilder->addDefinitions([
-                        'config'          =>      \Kernel\Core\Conf\Config::getInstance($confPath),
-                        //getInstance($this->container)
-                 //       'tcp'           =>      \Kernel\Swoole\SwooleTcpServer::class,
-                 //       'http'          =>      \Kernel\Swoole\SwooleHttpServer::getInstance(),
-                //        'websocket'     =>      \Kernel\Swoole\SwooleWebsocketServer::getInstance(),
-                ]);
-                $this->container = $containerBuilder->build();
-                $this->get('config')->load();
-                $this->container->set('tcp', $this->reflection(\Kernel\Swoole\SwooleTcpServer::class, $this->container));
-                //加载配置文件
+                $this->container = new Container();
+                $this->container->bind('container', $this->container);
+                $this->container->bind('config', Config::class);
+                $this->container->alias('Psr\Container\ContainerInterface', $this->container);
+                $this->container->bind('tcp', SwooleTcpServer::class);
         }
 
         private function isOne()
@@ -47,7 +43,7 @@ class Core
 
         public function getInstant()
         {
-                if(self::$core === null) {
+                if(self::$core !== null) {
                         throw new Exception('core is not construct');
                 }
                 return self::$core;
@@ -74,19 +70,6 @@ class Core
         }
 
         /**
-         * 加载默认
-         * @param array $maps
-         */
-        public function initLoad(array $maps = []) {
-                if(empty($maps)) {
-                        return ;
-                }
-                foreach ($maps as $className=>$params) {
-                        $this->container->make($className, $params);
-                }
-        }
-
-        /**
          * 获取指定对象
          * @param $name
          * @return mixed
@@ -95,24 +78,19 @@ class Core
                 return $this->container->get($name);
         }
 
-        public function reflection($className, $params = null)
+        public function serverStart(Server $server, \Closure $closure = null)
         {
-                if (class_exists($className)) {
-                        $instance = null;
-                        $reflection = new \ReflectionClass($className);
-                        $hasInstance = $reflection->hasMethod('getInstance');
-                        if ($hasInstance) {
-                                $instance = $params !== null ? $className::getInstance($params) : $className::getInstance();
-
-                        } else {
-                                $construct = $reflection->hasMethod('__construct');
-                                $instance = $construct ? $reflection->newInstanceArgs($params) : null;
-                        }
-                        if ($instance === null) {
-                                throw new \Exception('can\'t new Instance by ' . $className);
-                        }
-                        return $instance;
-                }
-                throw new \Exception('class not fount with '.$className);
+                $server->start($closure);
         }
+
+        public function doCrawler(\Closure $closure)
+        {
+                $func = function () use ($closure){
+                        $this->container->bind('Library\Crawler\Download\Downloader', Udn::class);
+                        $crawler = $this->container->build('Library\Crawler\Crawler');
+                        $closure($crawler);
+                };
+                $func();
+        }
+
 }
