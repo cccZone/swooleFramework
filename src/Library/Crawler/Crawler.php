@@ -17,9 +17,12 @@ class Crawler
                 $this->downloadManager = $downloader;
                 $this->parserManager = $parser;
                 $this->urlManager = $url;
-                $this->urlManager->addUrls(['https://udn.com/news/index']);
         }
 
+        public function initUrls(array $urls)
+        {
+                $this->urlManager->addUrls($urls);
+        }
 
         public function run()
         {

@@ -6,6 +6,7 @@ namespace Kernel;
 use Kernel\Core\Conf\Config;
 use Kernel\Core\Di\Container;
 use Kernel\Core\Di\IContainer;
+use Kernel\Swoole\SwooleHttpServer;
 use Kernel\Swoole\SwooleTcpServer;
 use Library\Crawler\Crawler;
 use Library\Crawler\Download\Udn;
@@ -14,6 +15,7 @@ use Swoole\Mysql\Exception;
 
 class Core
 {
+        /* @var Core $core*/
         public static $core = null;
         protected $container;
         protected $reflection;
@@ -33,19 +35,20 @@ class Core
                 $this->container->bind('config', Config::class);
                 $this->container->alias('Psr\Container\ContainerInterface', $this->container);
                 $this->container->bind('tcp', SwooleTcpServer::class);
+                $this->container->bind('http', SwooleHttpServer::class);
         }
 
         private function isOne()
         {
                 if(self::$core !== null) {
-                        throw new Exception('core is construct');
+                        throw new Exception('core has construct');
                 }
                 self::$core = $this;
         }
 
-        public function getInstant()
+        public static function getInstant() : Core
         {
-                if(self::$core !== null) {
+                if(self::$core === null) {
                         throw new Exception('core is not construct');
                 }
                 return self::$core;

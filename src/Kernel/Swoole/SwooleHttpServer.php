@@ -4,37 +4,32 @@
 namespace Kernel\Swoole;
 
 
+use Kernel\Core\Conf\Config;
 use Kernel\Server;
 use Psr\Container\ContainerInterface;
 
 class SwooleHttpServer implements Server
 {
         const EVENT = [
-                'request'
+                'request','packet','pipeMessage','task','finish'
         ];
         protected $server;
         public static $instance = null;
-        private function __construct(ContainerInterface $container)
+        public function __construct(Config $config)
         {
-                $config = $container->get('config')->get('server');
-                if(empty($config)) {
+                $server = $config->get('server');
+                if(empty($server)) {
                         throw new \Exception('config not found');
                 }
-                $this->server = new \swoole_http_server($config['host'], $config['port'], $config['mode'], $config['type']);
+                $this->server = new \swoole_http_server($server['host'], $server['port'], $server['mode'], $server['type']);
+
                 foreach (self::EVENT as $event) {
                         $class = '\\Kernel\\Swoole\\Event\\Http\\'.ucfirst($event);
-                        $callback = new $class;
+                        /* @var \Kernel\Swoole\Event\Event $callback */
+                        $callback = new $class($this->server);
                         $this->server->on($event, [$callback, 'doEvent']);
                 }
-
-        }
-
-        public static function getInstance(ContainerInterface $container)
-        {
-                if(self::$instance == null) {
-                        self::$instance = new self($container);
-                }
-                return self::$instance;
+                $this->server->set($config->get('swoole'));
         }
 
         public function start(\Closure $callback = null): Server

@@ -6,7 +6,7 @@ namespace Kernel\Swoole\Event;
 
 trait EventTrait
 {
-        protected $callback;
+        protected $callback = null;
         protected $params = [];
         public function setEventCall(\Closure $closure = null, array $params = [])
         {
@@ -17,7 +17,9 @@ trait EventTrait
 
         public function doClosure()
         {
-                call_user_func_array($this->callback, $this->params);
+                if($this->callback != null) {
+                        call_user_func_array($this->callback, $this->params);
+                }
                 return $this;
         }
 }

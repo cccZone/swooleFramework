@@ -36,10 +36,10 @@ class Udn
 
         public function setContent(string $url, array $content)
         {
-                if(strpos($url,'story') !== false) {
+                //if(strpos($url,'story') !== false) {
                         $table = 'crawler.'.'udn_'.date('ymd');
-                        $this->db->insert(array_merge(['url'=>$url], $content), $table)->execute();
-                }
+                        $this->db->insert(array_merge(['url'=>$url], $content),$table)->execute();
+                //}
         }
 
 }
