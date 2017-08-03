@@ -4,6 +4,7 @@
 namespace Library\Crawler\Url;
 
 
+use Kernel\Core\Cache\Redis;
 use Kernel\Core\Conf\Config;
 use Kernel\Core\DB\DB;
 
@@ -12,9 +13,11 @@ class Udn
         protected $urls = [];
         protected $got = [];
         protected $db;
-        public function __construct(Config $config, DB $db)
+        protected $cache;
+        public function __construct(Config $config, DB $db, Redis $redis)
         {
                 $this->db = $db;
+                $this->cache = $redis;
         }
 
         public function addUrls(array $urls)
@@ -22,6 +25,7 @@ class Udn
                 $gets = $this->got;
                 $this->urls = array_merge($this->urls, array_diff($urls, $gets));
                 $this->urls = array_unique($this->urls);
+                $this->cache->hset()
         }
 
         public function getOne()
