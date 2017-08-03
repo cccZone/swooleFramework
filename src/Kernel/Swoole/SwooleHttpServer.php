@@ -6,7 +6,6 @@ namespace Kernel\Swoole;
 
 use Kernel\Core\Conf\Config;
 use Kernel\Server;
-use Psr\Container\ContainerInterface;
 
 class SwooleHttpServer implements Server
 {
@@ -14,7 +13,7 @@ class SwooleHttpServer implements Server
                 'request','packet','pipeMessage','task','finish'
         ];
         protected $server;
-        public static $instance = null;
+
         public function __construct(Config $config)
         {
                 $server = $config->get('server');
@@ -23,9 +22,13 @@ class SwooleHttpServer implements Server
                 }
                 $this->server = new \swoole_http_server($server['host'], $server['port'], $server['mode'], $server['type']);
 
+                $extend = $config->get('event')['namespace'];
                 foreach (self::EVENT as $event) {
-                        $class = '\\Kernel\\Swoole\\Event\\Http\\'.ucfirst($event);
+                        $class = $extend.'\\'.ucfirst($event);
                         /* @var \Kernel\Swoole\Event\Event $callback */
+                        if(!class_exists($class)) {
+                                $class = '\\Kernel\\Swoole\\Event\\Http\\'.ucfirst($event);
+                        }
                         $callback = new $class($this->server);
                         $this->server->on($event, [$callback, 'doEvent']);
                 }
