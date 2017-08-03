@@ -5,7 +5,9 @@
     "require": {
         "psr/container": "^1.0",
         "illuminate/database": "^5.4",
-        "php-di/php-di": "^5.4",
-        "igorw/config-service-provider": "^1.2"
+        "igorw/config-service-provider": "^1.2",
+        "phpgt/dom": "^1.0",
+        "guzzlehttp/guzzle": "^6.3",
+        "mongodb/mongodb": "^1.1"
     }
 }

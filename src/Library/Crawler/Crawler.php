@@ -34,11 +34,13 @@ class Crawler
                         $this->downloadManager->download(function ($url, $content){
                                 if ($content !== '') {
                                         $this->parserManager->doParse($url, $content, $this->downloadManager->getUrlInfo('host'));
-                                        $this->urlManager->setContent($url, $this->parserManager->getMeta());
                                         $urls = array_filter($this->parserManager->getUrls(), function ($v) {
                                                 return $v != '';
                                         });
                                         $this->urlManager->addUrls($urls);
+
+                                        $this->urlManager->setContent($url, $this->parserManager->getMeta());
+
                                 }
                         });
                 }

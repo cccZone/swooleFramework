@@ -7,7 +7,7 @@ $app = new \Kernel\Core([ realpath('../src')], [realpath('../conf')]);
 /*$app->serverStart($app->get('tcp'), function () use($app){
         var_dump($app);
 });*/
-
+$app->getContainer()->alias(Kernel\Core\DB\DB::class,Kernel\Core\DB\Mongodb::class);
 $app->doCrawler(function (\Library\Crawler\Crawler $crawler){
         $crawler->run();
 });

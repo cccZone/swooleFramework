@@ -12,7 +12,6 @@ class Regular
                         return;
                 }
                 $meta = [];
-                $data = file_get_contents('https://udn.com/news/story/7241/2618686?from=udn_mobile_indexrecommend');
                 preg_match('/<TITLE>([\w\W]*?)<\/TITLE>/si', $data, $matches);
                 if (!empty($matches[1])) {
                         $meta['title'] = $matches[1];
