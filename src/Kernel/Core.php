@@ -5,9 +5,11 @@ namespace Kernel;
 
 use Kernel\Core\Conf\Config;
 use Kernel\Core\Di\Container;
+use Kernel\Core\Di\IContainer;
 use Kernel\Swoole\SwooleTcpServer;
 use Library\Crawler\Crawler;
 use Library\Crawler\Download\Udn;
+use Psr\Container\ContainerInterface;
 use Swoole\Mysql\Exception;
 
 class Core
@@ -91,6 +93,11 @@ class Core
                         $closure($crawler);
                 };
                 $func();
+        }
+
+        public function getContainer() : IContainer
+        {
+                return $this->container;
         }
 
 }

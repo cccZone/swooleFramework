@@ -1,6 +1,6 @@
 <?php
-namespace aef\orm\query\adapter\mongodb;
-class parser
+namespace Kernel\Core\DB\Mongodb;
+class Parser
 {
 	private static $_index  = 0;
 	private static $_length = 0;

@@ -5,15 +5,16 @@ namespace Library\Crawler\Url;
 
 
 use Kernel\Core\Conf\Config;
+use Kernel\Core\DB\DB;
 
 class Udn
 {
         protected $urls = [];
         protected $got = [];
         protected $db;
-        public function __construct(Config $config)
+        public function __construct(Config $config, DB $db)
         {
-
+                $this->db = $db;
         }
 
         public function addUrls(array $urls)
@@ -33,8 +34,9 @@ class Udn
                 return $get;
         }
 
-        public function setContent($url, $content)
+        public function setContent(string $url, array $content)
         {
-                $mongodb = new Mon
+                $this->db->insert(array_merge(['url'=>$url], $content),'test.aaa')->execute();
         }
+
 }

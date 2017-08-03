@@ -3,8 +3,6 @@
 
 namespace Library\Crawler;
 
-
-use Kernel\Core\Di\Container;
 use Library\Crawler\Download\Downloader;
 use Library\Crawler\Parse\Udn as Parse;
 use Library\Crawler\Url\Udn as Url;
@@ -25,7 +23,6 @@ class Crawler
 
         public function run()
         {
-                //$url = $this->urlManager->getOne()->current();
                 while (true) {
                         $url = $this->urlManager->getOne();
                         echo memory_get_usage();

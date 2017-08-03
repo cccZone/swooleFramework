@@ -1,6 +1,6 @@
 <?php
-namespace aef\orm\query\adapter\mongodb;
-class tokenizer
+namespace Kernel\Core\DB\Mongodb;
+class Tokenizer
 {
 	public static function tokenize($condition)
 	{

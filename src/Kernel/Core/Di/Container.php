@@ -3,10 +3,9 @@
 
 namespace Kernel\Core\Di;
 
-use Psr\Container\ContainerInterface;
 use Swoole\Mysql\Exception;
 
-class Container implements ContainerInterface, \ArrayAccess
+class Container implements IContainer, \ArrayAccess
 {
         protected $instances = [];
         protected $bounds = [];
@@ -25,7 +24,7 @@ class Container implements ContainerInterface, \ArrayAccess
         /**
          * 自动绑定（Autowiring）自动解析（Automatic Resolution）
          *
-         * @param string $className
+         * @param $className
          * @return object
          * @throws \Exception
          */
@@ -68,7 +67,7 @@ class Container implements ContainerInterface, \ArrayAccess
                 return $class;
         }
 
-        public function bind($key, $concrete = null)
+        public function bind(string $key, $concrete = null) : IContainer
         {
                 unset($this->instances[$key], $this->aliases[$key]);
 
@@ -81,14 +80,19 @@ class Container implements ContainerInterface, \ArrayAccess
                 }
 
                 $this->instances[$key] = $this->build($concrete);
+                return $this;
         }
 
-        public function alias($key, $class)
+        public function alias(string $key, $class) : IContainer
         {
                 if($class instanceof \Closure) {
                         $class = $this->getClosure($key, $class);
                 }
+                if(is_string($class)) {
+                        $class = $this->build($class);
+                }
                 $this->aliases[$key] = $class;
+                return $this;
         }
 
 
