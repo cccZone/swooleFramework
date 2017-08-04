@@ -13,12 +13,12 @@ class Container implements IContainer, \ArrayAccess
 
         public function __set($name, $class)
         {
-                $this->instances[$name] = $class;
+              $this->bind($name, $class);
         }
 
         public function __get($name)
         {
-                return $this->build($this->instances[$name]);
+                return $this->get($name);
         }
 
         /**
@@ -88,9 +88,9 @@ class Container implements IContainer, \ArrayAccess
                 if($class instanceof \Closure) {
                         $class = $this->getClosure($key, $class);
                 }
-                if(is_string($class)) {
+                /*if(is_string($class)) {
                         $class = $this->build($class);
-                }
+                }*/
                 $this->aliases[$key] = $class;
                 return $this;
         }
@@ -173,15 +173,30 @@ class Container implements IContainer, \ArrayAccess
 
         public function get($id)
         {
-                if(!isset($this[$id])) {
+                if(!class_exists($id)) {
                         throw new ObjectNotFoundException($id. ' not found');
                 }
-                return $this[$id];
+                if(isset($this->instances[$id])) {
+                        return $this->instances[$id];
+                }
+                if(isset($this->aliases[$id])) {
+                        if(is_string($this->aliases[$id])) {
+                                $this->aliases[$id] = $this->build($this->aliases[$id]);
+                        }
+                        return $this->aliases[$id];
+                }
+                return $this->build($id);
         }
 
         public function has($id)
         {
-                return isset($this[$id]);
+                if(isset($this->instances[$id])) {
+                        return true;
+                }
+                if(isset($this->aliases[$id])) {
+                        return true;
+                }
+                return false;
         }
 
 }

@@ -8,9 +8,7 @@ use Kernel\Core\Di\Container;
 use Kernel\Core\Di\IContainer;
 use Kernel\Swoole\SwooleHttpServer;
 use Kernel\Swoole\SwooleTcpServer;
-use Library\Crawler\Crawler;
 use Library\Crawler\Download\Udn;
-use Psr\Container\ContainerInterface;
 use Swoole\Mysql\Exception;
 
 class Core
@@ -34,8 +32,8 @@ class Core
                 $this->container->bind('container', $this->container);
                 $this->container->bind('config', Config::class);
                 $this->container->alias('Psr\Container\ContainerInterface', $this->container);
-                $this->container->bind('tcp', SwooleTcpServer::class);
-                $this->container->bind('http', SwooleHttpServer::class);
+                $this->container->alias('tcp', SwooleTcpServer::class);
+                $this->container->alias('http', SwooleHttpServer::class);
         }
 
         private function isOne()
@@ -95,6 +93,7 @@ class Core
                         $crawler = $this->container->build('Library\Crawler\Crawler');
                         $closure($crawler);
                 };
+
                 $func();
         }
 

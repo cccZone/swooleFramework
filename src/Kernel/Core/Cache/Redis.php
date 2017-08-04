@@ -15,7 +15,7 @@ class Redis
 
         public function __construct(Config $config)
         {
-                $config->get('redis');
+                $config = $config->get('redis');
                 $this->_host     = $config['host'];
                 $this->_port     = $config['port'];
                 $this->_password = $config['password'] ?? null;

@@ -7,6 +7,7 @@ namespace Library\Crawler\Url;
 use Kernel\Core\Cache\Redis;
 use Kernel\Core\Conf\Config;
 use Kernel\Core\DB\DB;
+use Kernel\Core\Cache\Redis\Set;
 
 class Udn
 {
@@ -17,24 +18,24 @@ class Udn
         public function __construct(Config $config, DB $db, Redis $redis)
         {
                 $this->db = $db;
-                $this->cache = $redis;
+                $this->urls = $this->getSet('crawler:'.date('ymd').':urls', $redis);
+                $this->got = $this->getSet('crawler:'.date('ymd').':got', $redis);
         }
 
         public function addUrls(array $urls)
         {
-                $gets = $this->got;
-                $this->urls = array_merge($this->urls, array_diff($urls, $gets));
-                $this->urls = array_unique($this->urls);
-                $this->cache->hset()
+                $got = $this->got->getAll();
+                $diff = array_diff($urls, $got);
+                $this->urls->addValues($diff);
         }
 
         public function getOne()
         {
-                if(count($this->urls)<=0) {
+                if($this->urls->getLength() < 1) {
                         return '';
                 }
-                $get = array_shift($this->urls);
-                array_push($this->got, $get);
+                $get = $this->urls->get();
+                $this->got->addValue($get);
                 return $get;
         }
 
@@ -44,6 +45,28 @@ class Udn
                         $table = 'crawler.'.'udn_'.date('ymd');
                         $this->db->insert(array_merge(['url'=>$url], $content),$table)->execute();
                 //}
+        }
+
+
+        private function getSet(string $key, Redis $redis)
+        {
+                $class = new class($redis) extends Set{
+                        public function __construct(Redis $redis)
+                        {
+                                parent::__construct($redis);
+                        }
+
+                        public function setKey(string $key) {
+                                $this->_key = $key;
+                        }
+
+                        public function getKey() : string
+                        {
+                                return $this->_key;
+                        }
+                };
+                $class->setKey($key);
+                return $class;
         }
 
 }
