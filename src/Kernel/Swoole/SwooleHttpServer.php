@@ -37,8 +37,9 @@ class SwooleHttpServer implements Server
 
         public function start(\Closure $callback = null): Server
         {
-             $this->server->start();
-             return $this;
+                $callback();
+                $this->server->start();
+                return $this;
         }
 
         public function shutdown(\Closure $callback = null): Server

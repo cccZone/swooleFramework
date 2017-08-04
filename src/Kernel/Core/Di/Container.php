@@ -31,10 +31,9 @@ class Container implements IContainer, \ArrayAccess
         public function build($className)
         {
                 if(is_string($className) and $this->offsetExists($className)) {
-                        $class =  $this->offsetGet($className);
-
-                        if(is_object($class)) {
-                                return $class;
+                        $className =  $this->offsetGet($className);
+                        if(is_object($className)) {
+                                return $className;
                         }
                 }
 
@@ -48,7 +47,7 @@ class Container implements IContainer, \ArrayAccess
 
                 // 检查类是否可实例化, 排除抽象类abstract和对象接口interface
                 if (!$reflector->isInstantiable()) {
-                        throw new \Exception("Can't instantiate this.");
+                        throw new \Exception("Can't instantiate ".$className);
                 }
 
                 /** @var \ReflectionMethod $constructor 获取类的构造函数 */
@@ -173,14 +172,14 @@ class Container implements IContainer, \ArrayAccess
 
         public function get($id)
         {
-                if(!class_exists($id)) {
-                        throw new ObjectNotFoundException($id. ' not found');
-                }
                 if(isset($this->instances[$id])) {
                         return $this->instances[$id];
                 }
                 if(isset($this->aliases[$id])) {
                         if(is_string($this->aliases[$id])) {
+                                if(!class_exists($this->aliases[$id])) {
+                                        throw new ObjectNotFoundException($id. ' not found');
+                                }
                                 $this->aliases[$id] = $this->build($this->aliases[$id]);
                         }
                         return $this->aliases[$id];

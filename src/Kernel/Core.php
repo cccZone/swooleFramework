@@ -4,6 +4,8 @@
 namespace Kernel;
 
 use Kernel\Core\Conf\Config;
+use Kernel\Core\DB\DB;
+use Kernel\Core\DB\Mongodb;
 use Kernel\Core\Di\Container;
 use Kernel\Core\Di\IContainer;
 use Kernel\Swoole\SwooleHttpServer;
@@ -32,8 +34,11 @@ class Core
                 $this->container->bind('container', $this->container);
                 $this->container->bind('config', Config::class);
                 $this->container->alias('Psr\Container\ContainerInterface', $this->container);
+                $this->container->alias(DB::class,Mongodb::class);
                 $this->container->alias('tcp', SwooleTcpServer::class);
                 $this->container->alias('http', SwooleHttpServer::class);
+
+               // $this->container->alias('Kernel\Core\DB\DB',Mongodb::class);
         }
 
         private function isOne()
