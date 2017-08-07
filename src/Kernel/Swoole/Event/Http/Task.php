@@ -19,7 +19,7 @@ class Task implements Event
 
         public function doEvent(\swoole_server $server, $taskId, $fromId, $data)
         {
-                $data = json_encode($data);
+                //$data = json_encode($data);
                 if(is_array($data) and isset($data['action'])) {
                         switch ($data['action']) {
                                 case 'crawler':

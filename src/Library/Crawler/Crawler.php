@@ -28,8 +28,8 @@ class Crawler
         {
                 while (true) {
                         $url = $this->urlManager->getOne();
-                        echo memory_get_usage();
-                        echo "\r\n";
+                        $mem = memory_get_usage();
+                        file_put_contents('memory_'.date('ymdhi'), "memery: {$mem}".PHP_EOL);
                         if ($url == '') {
                                 return;
                         }
