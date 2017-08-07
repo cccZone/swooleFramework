@@ -18,7 +18,6 @@ class Packet implements Event
         }
         public function doEvent(\swoole_server $server, string $data, array $client_info)
         {
-                var_dump($server,$data,$client_info);
                 $this->doClosure();
                 //$response->end("<h1>Hello Swoole. #".rand(1000, 9999)."</h1>");
                 //$response->end("<h1>Hello Swoole. #".rand(1000, 9999)."</h1>");

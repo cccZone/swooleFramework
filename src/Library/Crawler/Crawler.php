@@ -12,6 +12,7 @@ class Crawler
         protected $urlManager;
         protected $parserManager;
         protected $downloadManager;
+        protected $host = '';
         public function __construct(Downloader $downloader, Parse $parser, Url $url)
         {
                 $this->downloadManager = $downloader;
@@ -19,9 +20,10 @@ class Crawler
                 $this->urlManager = $url;
         }
 
-        public function initUrls(array $urls)
+        public function initUrls(array $urls, string $host = '')
         {
                 $this->urlManager->addUrls($urls);
+                $this->host = $host;
         }
 
         public function run()

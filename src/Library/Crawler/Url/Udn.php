@@ -11,22 +11,40 @@ use Kernel\Core\Cache\Redis\Set;
 
 class Udn
 {
-        protected $urls = [];
-        protected $got = [];
+        /* @var $urls Set */
+        protected $urls;
+        /* @var $got Set */
+        protected $got;
         protected $db;
         protected $cache;
+        protected $host;
+        protected $dbName;
         public function __construct(Config $config, DB $db, Redis $redis)
         {
                 $this->db = $db;
-                $this->urls = $this->getSet('crawler:'.date('ymd').':urls', $redis);
-                $this->got = $this->getSet('crawler:'.date('ymd').':got', $redis);
+                $this->cache = $redis;
+        }
+
+        public function setHost(string $host)
+        {
+                $this->host = $host;
+                $this->dbName = explode('.', $host)[1] ?? 'crawler';
+                $this->urls = $this->getSet($host.':'.date('ymd').':urls', $this->cache);
+                $this->got = $this->getSet($host.':'.date('ymd').':got', $this->cache);
         }
 
         public function addUrls(array $urls)
         {
+                if($this->host == '') {
+                        $url = parse_url($urls[0]);
+                        $this->setHost($url['host']);
+                }
+
                 $got = $this->got->getAll();
                 $diff = array_diff($urls, $got);
-                $this->urls->addValues($diff);
+                if(!empty($diff)) {
+                        $this->urls->addValues($diff);
+                }
         }
 
         public function getOne()
@@ -42,7 +60,7 @@ class Udn
         public function setContent(string $url, array $content)
         {
                 //if(strpos($url,'story') !== false) {
-                        $table = 'crawler.'.'udn_'.date('ymd');
+                        $table = 'crawler.'.$this->dbName.'_'.date('ymd');
                         $this->db->insert(array_merge(['url'=>$url], $content),$table)->execute();
                 //}
         }

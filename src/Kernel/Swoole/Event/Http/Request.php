@@ -31,11 +31,16 @@ class Request implements Event
                 $data = json_decode($data, true);
                 //todo:
                 //$data = ['action'=>self::ACTION_CRAWLER, 'url'=>'https://udn.com/news/index'];
-                if(isset($data['action']) and isset($data['url']) and $data['action'] == self::ACTION_CRAWLER) {
-                        $this->action = strtolower($data['action']);
-                        $this->actionParams = $data;
+                $time = $this->_check($data);
+                if(!is_array($data)) {
+                        $data = ['code'=>0];
                 }
-                $response->end(json_encode(empty($data)?['code'=>0]:$data));
+                if(!empty($this->actionParams)) {
+                        $data['worker'] = $time != 0 ? $time : 'false';
+                }else{
+                        $data['worker'] = 'false';
+                }
+                $response->end(json_encode($data));
                 $this->doClosure();
         }
 
@@ -64,17 +69,27 @@ class Request implements Event
 
         private function _crawler()
         {
-                $data = $this->actionParams;
-                $url = parse_url($data['url']);
-                $now = time();
-                if(array_key_exists($url['host'], self::$crawlerUrls)) {
-                        $addTime = self::$crawlerUrls[$url['host']];
-                        if(date('d',$addTime) == date('d',$now)) {
-                              return;
-                        }
-                        self::$crawlerUrls[$url['host']] = $now ;
+                if(!empty($this->actionParams)) {
+                        $this->server->task($this->actionParams);
                 }
-                self::$crawlerUrls[$url['host']] = $now;
-                $this->server->task($this->actionParams);
+        }
+
+        private function _check($data)
+        {
+                if(isset($data['action']) and isset($data['url']) and $data['action'] == self::ACTION_CRAWLER) {
+                        $url = parse_url($data['url']);
+                        $now = time();
+                        if(array_key_exists($url['host'], self::$crawlerUrls)) {
+                                $addTime = self::$crawlerUrls[$url['host']];
+                                if(date('d',$addTime) == date('d',$now)) {
+                                        return $addTime;
+                                }
+                        }
+                        $this->action = strtolower($data['action']);
+                        $this->actionParams = $data;
+                        self::$crawlerUrls[$url['host']] = $now;
+                        return $now;
+                }
+                return 0;
         }
 }

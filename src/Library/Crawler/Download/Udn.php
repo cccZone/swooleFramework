@@ -20,7 +20,7 @@ class Udn implements Downloader
                                 "User-Agent" => 'Chrome/49.0.2587.3',
                                 'Accept' => 'text/html,application/xhtml+xml,application/xml',
                                 'Accept-Encoding' => 'gzip',
-                                'referer' => 'https://udn.com/mobile/index',
+                            //    'referer' => 'https://udn.com/mobile/index',
                                 'upgrade-insecure-requests' => '1'
                         ]);
                         $http = new Client(['timeout'  => 2]);
