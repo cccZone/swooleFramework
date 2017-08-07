@@ -14,7 +14,7 @@ class Request implements Event
         protected $server;
         protected $action = '';
         protected $actionParams = [];
-
+        protected static $crawlerUrls = [];
         const ACTION_CRAWLER = 'crawler';
         public function __construct(\swoole_http_server $server)
         {
@@ -27,7 +27,21 @@ class Request implements Event
                 $data = json_decode($data, true);
                 //todo:
                 //$data = ['action'=>self::ACTION_CRAWLER, 'url'=>'https://udn.com/news/index'];
-                if(isset($data['action'])) {
+                if(isset($data['action']) and isset($data['url']) and $data['action'] == self::ACTION_CRAWLER) {
+                        $url = parse_url($data['url']);
+                        if(!isset($url['host'])) {
+                                $response->end(json_encode(['code'=>1,'url'=>$data['url']]));
+                                return ;
+                        }
+                        if(array_key_exists($url['host'], self::$crawlerUrls)) {
+                                $addTime = self::$crawlerUrls[$url['host']];
+                                $now = time();
+                                if(date('d',$addTime) == date('d',$now)) {
+                                        $response->end(json_encode(['code'=>1,'url'=>$data['url'],'dayExists'=> $now]));
+                                        return ;
+                                }
+                                self::$crawlerUrls[$url['host']] = $now ;
+                        }
                         $this->action = strtolower($data['action']);
                         $this->actionParams = $data;
                 }
