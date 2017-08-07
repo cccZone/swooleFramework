@@ -10,7 +10,7 @@ use Kernel\Server;
 class SwooleHttpServer implements Server
 {
         const EVENT = [
-                'request','packet','pipeMessage','task','finish'
+                'request','packet','pipeMessage','task','finish','close'
         ];
         protected $server;
 
@@ -22,7 +22,7 @@ class SwooleHttpServer implements Server
                 }
                 $this->server = new \swoole_http_server($server['host'], $server['port'], $server['mode'], $server['type']);
 
-                $extend = $config->get('event')['namespace'];
+                $extend = $config->get('event')['namespace'] ?? '';
                 foreach (self::EVENT as $event) {
                         $class = $extend.'\\'.ucfirst($event);
                         /* @var \Kernel\Swoole\Event\Event $callback */

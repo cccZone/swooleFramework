@@ -3,9 +3,11 @@
 
 namespace Kernel\Swoole\Event\Http;
 
+
 use Kernel\Swoole\Event\Event;
 use Kernel\Swoole\Event\EventTrait;
-class WorkerStop implements Event
+
+class Tick implements Event
 {
         use EventTrait;
         /* @var  \swoole_http_server $server*/
@@ -14,10 +16,8 @@ class WorkerStop implements Event
         {
                 $this->server = $server;
         }
-
-        public function doEvent(\swoole_server $server, $workerId)
+        public function doEvent(\swoole_server $server, $inteval)
         {
-                $str = "workerId: {$server->worker_id},  {$workerId}\r\n";
-                file_put_contents('test', $str, FILE_APPEND);
+                file_put_contents('test', "workerId: ".$server->worker_id."\r\n", FILE_APPEND);
         }
 }

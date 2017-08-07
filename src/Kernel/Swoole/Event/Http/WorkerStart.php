@@ -15,8 +15,10 @@ class WorkerStart implements Event
         {
                 $this->server = $server;
         }
+
         public function doEvent(\swoole_server $server, $workerId)
         {
-                var_dump($workerId);
+                $str = "workerId: {$server->worker_id}, {$workerId}\r\n";
+                file_put_contents('test', $str, FILE_APPEND);
         }
 }

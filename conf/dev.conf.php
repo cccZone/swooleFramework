@@ -5,12 +5,13 @@ return [
 
         'swoole'        =>      [
                 'worker_num' =>  2,    //开启两个worker进程
+                'task_worker_num'=>'3',
                 //'max_request' => 3,   //每个worker进程max request设置为3次
                 'dispatch_mode'=>3,
                 'task_max_request'=>0,
-                'daemonize'     =>      1,
-                'log_file' => 'log/swoole.log',
-                'log_level'     =>      1,
+                //'daemonize'     =>      1,
+                //'log_file' => 'log/swoole.log',
+               // 'log_level'     =>      1,
                 //'heartbeat_check_interval'      =>      '60',  心跳检测
                 //'heartbeat_idle_time'           =>      '600',  最大空闲时间
                 'open_eof_check' => true, //打开EOF检测
@@ -40,5 +41,9 @@ return [
                         'replicaSet'            => 'rs',
                         'readPreference'        => 'primary'
                 ]
+        ],
+        'redis'         =>      [
+                'host'  =>      '54.222.155.203',
+                'port'  =>      '12346'
         ]
 ];
