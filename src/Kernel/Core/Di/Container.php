@@ -135,7 +135,7 @@ class Container implements IContainer, \ArrayAccess
          * @return array
          * @throws Exception
          */
-        public function getDependencies($parameters)
+        public function getDependencies(array $parameters)
         {
                 $dependencies = [];
 
@@ -158,18 +158,23 @@ class Container implements IContainer, \ArrayAccess
         /**
          * @param \ReflectionParameter $parameter
          * @return mixed
-         * @throws Exception
+         * @throws \Exception
          */
-        public function resolveNonClass($parameter)
+        public function resolveNonClass(\ReflectionParameter $parameter)
         {
                 // 有默认值则返回默认值
                 if ($parameter->isDefaultValueAvailable()) {
                         return $parameter->getDefaultValue();
                 }
 
-                throw new Exception('I have no idea what to do here.');
+                throw new \Exception('I have no idea what to do here.');
         }
 
+        /**
+         * @param $id
+         * @return mixed|object
+         * @throws ObjectNotFoundException
+         */
         public function get($id)
         {
                 if(isset($this->instances[$id])) {
@@ -187,12 +192,16 @@ class Container implements IContainer, \ArrayAccess
                 return $this->build($id);
         }
 
-        public function has($id)
+        /**
+         * @param string $name
+         * @return bool
+         */
+        public function has($name)
         {
-                if(isset($this->instances[$id])) {
+                if(isset($this->instances[$name])) {
                         return true;
                 }
-                if(isset($this->aliases[$id])) {
+                if(isset($this->aliases[$name])) {
                         return true;
                 }
                 return false;

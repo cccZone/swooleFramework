@@ -26,12 +26,12 @@ class Request implements Event
                 $data = $request->rawContent();
                 $data = json_decode($data, true);
                 //todo:
-                $data = ['action'=>self::ACTION_CRAWLER, 'url'=>'https://udn.com/news/index'];
+                //$data = ['action'=>self::ACTION_CRAWLER, 'url'=>'https://udn.com/news/index'];
                 if(isset($data['action'])) {
                         $this->action = strtolower($data['action']);
                         $this->actionParams = $data;
                 }
-                $response->end("<h1>Hello Swoole. #".rand(1000, 9999)."</h1>");
+                $response->end(json_encode($data));
                 $this->doClosure();
         }
 

@@ -41,6 +41,11 @@ class Core
                // $this->container->alias('Kernel\Core\DB\DB',Mongodb::class);
         }
 
+        private function route()
+        {
+
+        }
+
         private function isOne()
         {
                 if(self::$core !== null) {
