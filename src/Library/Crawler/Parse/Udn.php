@@ -11,6 +11,7 @@ class Udn
         protected $urls = [];
         protected $hosts = [];
         protected $meta = [];
+        protected $path = '';
         public function doParse($url, $content, $host)
         {
                 $this->url = $url;
@@ -22,7 +23,7 @@ class Udn
 
         private function _getMeta()
         {
-                return Regular::getMeta($this->content);
+                return Regular::getMeta($this->content, $this->url);
         }
 
         public function setHosts(array $hosts = [])
@@ -41,6 +42,16 @@ class Udn
         }
 
         /**
+         * @param string $path
+         */
+        public function setPath(string $path)
+        {
+                $this->path = $path;
+        }
+
+
+
+        /**
          * @return array
          */
         public function getMeta(): array
@@ -53,7 +64,7 @@ class Udn
         private function _getUrls()
         {
                 $urlInfo = parse_url($this->url);
-                $this->urls = Regular::getUrls($this->content, $urlInfo['scheme']??'', $urlInfo['host']??'');
+                $this->urls = Regular::getUrls($this->content, $urlInfo['scheme']??'', $urlInfo['host']??'', $this->path);
         }
 
 }

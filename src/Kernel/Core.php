@@ -3,6 +3,7 @@
 
 namespace Kernel;
 
+use Kernel\Core\Cache\Redis;
 use Kernel\Core\Conf\Config;
 use Kernel\Core\DB\DB;
 use Kernel\Core\DB\Mongodb;
@@ -35,10 +36,9 @@ class Core
                 $this->container->bind('config', Config::class);
                 $this->container->alias('Psr\Container\ContainerInterface', $this->container);
                 $this->container->alias(DB::class,Mongodb::class);
-                $this->container->alias('tcp', SwooleTcpServer::class);
-                $this->container->alias('http', SwooleHttpServer::class);
-
-               // $this->container->alias('Kernel\Core\DB\DB',Mongodb::class);
+                $this->container->alias('db', Mongodb::class);
+                $this->container->alias('redis', Redis::class);
+                $this->container->singleton(Server::class, SwooleHttpServer::class, 'http');
         }
 
         private function route()

@@ -1,11 +1,19 @@
 <?php
 declare(strict_types=1);
-namespace model\common\redis;
+namespace Kernel\Core\Cache\Redis;
+
 
 use Kernel\Core\Cache\Redis;
 
-class Hash extends Redis
+class Hash
 {
+
+        use Redis\RedisTrait;
+        protected $_redis;
+        public function __construct(Redis $redis)
+        {
+                $this->_redis = $redis;
+        }
 	/**
 	 * 判断key是否存在
 	 * @param string $field

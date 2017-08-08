@@ -6,7 +6,7 @@ namespace Library\Crawler\Parse;
 
 class Regular
 {
-        public static function getMeta(string $data)
+        public static function getMeta(string $data, string $url)
         {
                 if(empty($data)) {
                         return;
@@ -52,15 +52,15 @@ class Regular
                 $meta = [
                         'title'         =>      $meta['title'] ?? '',
                         'description'   =>      $meta['description'] ?? '',
-                        'image'         =>      $meta['image'] ?? '',
+                        'image'         =>      $meta['image'] ?? self::getImage($data),
                         'author'        =>      $meta['author'] ?? '',
                         'site_name'     =>      $meta['site_name'] ?? '',
-                        'url'           =>      $meta['url'] ?? ''
+                        'url'           =>      $meta['url'] ?? $url
                 ];
                 return $meta;
         }
 
-        public static function getUrls(string $data, string $scheme = '', string $host = '')
+        public static function getUrls(string $data, string $scheme = '', string $host = '', string $path = '')
         {
                 $pattern = '/<a\b[^>]+\bhref="([^"]*)"[^>]*>([\s\S]*?)<\/a>/';
                 //       $pattern = '#(http|ftp|https)://?([a-z0-9_-]+\.)+(com|net|cn|org){1}(\/[a-z0-9_-]+)*\.?(?!:jpg|jpeg|gif|png|bmp)(?:")#i';
@@ -68,15 +68,21 @@ class Regular
                 $urls = [];
 
                 foreach ($matched[1] as $url) {
-                        $url = self::getUrl($url,$scheme,$host);
+                        $url = self::getUrl($url,$scheme,$host,$path);
                         $urls[] = $url;
                 }
                 return $urls;
         }
 
-        public static function getUrl(string $url, string $scheme = '', string $host = '')
+        public static function getImage(string $data)
         {
+                $pattern="/<[img|IMG].*?src=[\'|\"](.*?(?:[\.gif|\.jpg|\.png]))[\'|\"].*?[\/]?>/";
+                preg_match_all($pattern,$data,$matches);
+                return isset($matches[1][0]) ? $matches[1][0] : '';
+        }
 
+        public static function getUrl(string $url, string $scheme = '', string $host = '', string $path = '')
+        {
                 if($url == '') {
                         return '';
                 }
@@ -106,9 +112,15 @@ class Regular
                                 return '';
                         }
                 }
-                if(!isset($urlInfo['path'])) {
-                        $urlInfo['path'] = '/';
-                }
+               if($path!=''){
+                        if(!isset($urlInfo['path']) or strpos($urlInfo['path'], $path)) {
+                                return '';
+                        }
+               }else{
+                        if(!isset($urlInfo['path'])) {
+                                $urlInfo['path'] = '/';
+                        }
+               }
 
                 $url = $urlInfo['scheme'].'://'.trim($urlInfo['host'],'/ ').'/'.trim($urlInfo['path'], '/ ') ;
                 if(isset($urlInfo['query'])) {

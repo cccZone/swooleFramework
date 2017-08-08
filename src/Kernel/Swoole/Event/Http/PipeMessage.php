@@ -19,5 +19,8 @@ class PipeMessage implements Event
         public function doEvent(\swoole_server $server, $src_worker_id, $data)
         {
                 echo "#{$server->worker_id} message from #$src_worker_id: $data\n";
+                if($data == 'kill') {
+                        $server->finish('');
+                }
         }
 }

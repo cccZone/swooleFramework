@@ -65,24 +65,16 @@ class Udn
                 //}
         }
 
+        public function clear()
+        {
+                $this->got->del();
+                $this->urls->del();
+        }
+
 
         private function getSet(string $key, Redis $redis)
         {
-                $class = new class($redis) extends Set{
-                        public function __construct(Redis $redis)
-                        {
-                                parent::__construct($redis);
-                        }
-
-                        public function setKey(string $key) {
-                                $this->_key = $key;
-                        }
-
-                        public function getKey() : string
-                        {
-                                return $this->_key;
-                        }
-                };
+                $class = new Set($redis);
                 $class->setKey($key);
                 return $class;
         }

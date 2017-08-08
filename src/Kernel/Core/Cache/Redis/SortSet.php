@@ -3,10 +3,17 @@ declare(strict_types=1);
 namespace model\common\redis;
 
 
-use model\common\Redis;
+use Kernel\Core\Cache\Redis;
+use Kernel\Core\Cache\Redis\RedisTrait;
 
-abstract class SortSet extends Redis
+class SortSet extends Redis
 {
+        use RedisTrait;
+        protected $_redis;
+        public function __construct(Redis $redis)
+        {
+                $this->_redis = $redis;
+        }
 	/**
 	 * 设置字段自增
 	 * @param string $field
@@ -151,12 +158,12 @@ abstract class SortSet extends Redis
 	/**
 	 * 从值获取元素
 	 * @param string $member
-	 * @return null
+	 * @return string
 	 */
         public function getFieldValue(string $member)
         {
         	$score = $this->_redis->zscore($this->_key, $member);
-                return $score!==null?$score:null;
+                return $score!==null ? $score: 0;
         }
 	
 	/**

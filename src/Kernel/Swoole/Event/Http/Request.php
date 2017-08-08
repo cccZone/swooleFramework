@@ -7,6 +7,8 @@ namespace Kernel\Swoole\Event\Http;
 use Kernel\Swoole\Event\Event;
 use Kernel\Swoole\Event\EventTrait;
 
+use model\common\redis\SortSet;
+
 class Request implements Event
 {
         use EventTrait;
@@ -14,8 +16,12 @@ class Request implements Event
         protected $server;
         protected $action = '';
         protected $actionParams = [];
-        protected static $crawlerUrls = [];
         const ACTION_CRAWLER = 'crawler';
+        const ACTION_KILL = 'kill';
+        const ACTION_RELOAD = 'reload';
+        const ACTION_STOP = 'stop';
+
+        protected $redis;
         public function __construct(\swoole_http_server $server)
         {
                 $this->server = $server;
@@ -29,14 +35,12 @@ class Request implements Event
                 }
                 $data = $request->rawContent();
                 $data = json_decode($data, true);
-                //todo:
-                //$data = ['action'=>self::ACTION_CRAWLER, 'url'=>'https://udn.com/news/index'];
                 $time = $this->_check($data);
                 if(!is_array($data)) {
                         $data = ['code'=>0];
                 }
                 if(!empty($this->actionParams)) {
-                        $data['worker'] = $time != 0 ? $time : 'false';
+                        $data['worker'] = $time != 0 ? $time : 'false1';
                 }else{
                         $data['worker'] = 'false';
                 }
@@ -52,44 +56,37 @@ class Request implements Event
 
         public function doClosure()
         {
-                $callback = function (){
-                        switch ($this->action) {
-                                case self::ACTION_CRAWLER:
-                                        $this->_crawler();
-                                        break;
-                        }
-                        if($this->callback != null) {
-                                $this->callback($this->params);
-                        }
-                };
-
-                call_user_func($callback);
+                if($this->callback != null) {
+                        $this->callback($this->params);
+                }
                 return $this;
         }
 
-        private function _crawler()
+        private function _task($data)
         {
-                if(!empty($this->actionParams)) {
-                        $this->server->task($this->actionParams);
-                }
+                $this->server->task($data);
         }
 
         private function _check($data)
         {
-                if(isset($data['action']) and isset($data['url']) and $data['action'] == self::ACTION_CRAWLER) {
-                        $url = parse_url($data['url']);
+                $now = 0;
+                if(isset($data['action'])) {
                         $now = time();
-                        if(array_key_exists($url['host'], self::$crawlerUrls)) {
-                                $addTime = self::$crawlerUrls[$url['host']];
-                                if(date('d',$addTime) == date('d',$now)) {
-                                        return $addTime;
-                                }
+                        switch ($data['action']) {
+                                case self::ACTION_CRAWLER:
+                                        $this->_task($data);
+                                        break;
+                                case self::ACTION_KILL:
+                                case self::ACTION_STOP:
+                                        $this->_task($data);
+                                        break;
+                                case self::ACTION_RELOAD:
+                                        $this->_task($data);
+                                        break;
+                                default:
+                                        $now = 0;
                         }
-                        $this->action = strtolower($data['action']);
-                        $this->actionParams = $data;
-                        self::$crawlerUrls[$url['host']] = $now;
-                        return $now;
                 }
-                return 0;
+                return $now;
         }
 }

@@ -10,6 +10,7 @@ class Container implements IContainer, \ArrayAccess
         protected $instances = [];
         protected $bounds = [];
         protected $aliases = [];
+        protected $singleton = [];
 
         public function __set($name, $class)
         {
@@ -82,14 +83,15 @@ class Container implements IContainer, \ArrayAccess
                 return $this;
         }
 
-        public function alias(string $key, $class) : IContainer
+        public function alias(string $key, $class, bool $singleton = true) : IContainer
         {
                 if($class instanceof \Closure) {
                         $class = $this->getClosure($key, $class);
                 }
-                /*if(is_string($class)) {
-                        $class = $this->build($class);
-                }*/
+                if($singleton) {
+                        $this->singleton[] = $class;
+                }
+
                 $this->aliases[$key] = $class;
                 return $this;
         }
@@ -185,11 +187,34 @@ class Container implements IContainer, \ArrayAccess
                                 if(!class_exists($this->aliases[$id])) {
                                         throw new ObjectNotFoundException($id. ' not found');
                                 }
-                                $this->aliases[$id] = $this->build($this->aliases[$id]);
+                                if(in_array($this->aliases[$id], $this->singleton)) {
+                                        if(!isset($this->singleton[$this->aliases[$id]]) or is_null($this->singleton[$this->aliases[$id]])) {
+                                                $this->singleton[$this->aliases[$id]] = $this->build($this->aliases[$id]);
+                                        }
+                                        $this->aliases[$id] = $this->singleton[$this->aliases[$id]];
+                                }else{
+                                        $this->aliases[$id] = $this->build($this->aliases[$id]);
+                                }
                         }
                         return $this->aliases[$id];
                 }
                 return $this->build($id);
+        }
+
+        /**
+         * 单例
+         * @param string $name
+         * @param string $class
+         * @param string $alisa
+         * @return $this
+         */
+        public function singleton(string $name, string $class, string $alisa = '')
+        {
+                $this->singleton[$name] = $this->build($class);
+                if(!empty($alisa)) {
+                        $this->aliases[$alisa] = $this->singleton[$name];
+                }
+                return $this;
         }
 
         /**

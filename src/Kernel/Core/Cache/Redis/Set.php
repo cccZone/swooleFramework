@@ -8,11 +8,16 @@ use Kernel\Core\Cache\Redis;
 
 class Set
 {
+        use RedisTrait;
         protected $_redis;
-        protected $_key;
         public function __construct(Redis $redis)
         {
                 $this->_redis = $redis;
+        }
+
+        public function del()
+        {
+                $this->_redis->del($this->_key);
         }
 
         public function get()
@@ -41,12 +46,8 @@ class Set
 
         public function diff(string $otherSet)
         {
-                $result = [];
                 $response =  $this->_redis->sdiff($this->_key, $otherSet);
-                for($i=0,$num=count($response);$i<$num;$i++) {
-                        $result[$response[$i]] = intval($response[++$i]);
-                }
-                return $result;
+                return !empty($response) ? $response : [];
         }
 
         public function diffSave(string $newKey, string $oldKey) : bool
@@ -56,12 +57,8 @@ class Set
 
         public function inter(Set $otherSet)
         {
-                $result = [];
                 $response =  $this->_redis->sinter($this->_key, $otherSet->getKey());
-                for($i=0,$num=count($response);$i<$num;$i++) {
-                        $result[$response[$i]] = intval($response[++$i]);
-                }
-                return $result;
+                return !empty($response) ? $response : [];
         }
 
         public function interSave(string $newKey, string $oldKey) : bool
@@ -87,12 +84,8 @@ class Set
 
         public function union(string $key)
         {
-                $result = [];
                 $response =  $this->_redis->sunion($this->_key, $key);
-                for($i=0,$num=count($response);$i<$num;$i++) {
-                        $result[$response[$i]] = intval($response[++$i]);
-                }
-                return $result;
+                return !empty($response) ? $response : [];
         }
 
         public function unionSave(string $newKey, string $oldKey) : bool
