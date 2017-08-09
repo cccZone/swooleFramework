@@ -3,11 +3,10 @@
 
 namespace Library\Crawler\Url;
 
-
+use Kernel\Core;
 use Kernel\Core\Cache\Redis;
-use Kernel\Core\Conf\Config;
-use Kernel\Core\DB\DB;
-use Kernel\Core\Cache\Redis\Set;
+use Kernel\Core\Cache\Type\Set;
+use function PHPSTORM_META\type;
 
 class Udn
 {
@@ -19,32 +18,56 @@ class Udn
         protected $cache;
         protected $host;
         protected $dbName;
-        public function __construct(Config $config, DB $db, Redis $redis)
+        protected $dbPrefix;
+        public function __construct(string $host, string $prefix)
         {
-                $this->db = $db;
-                $this->cache = $redis;
+                $core = Core::getInstant();
+                $this->db = $core->get('db');
+                $this->cache = $core->get('redis');
+                $this->setHost($host);
+                $this->setDbPrefix($prefix);
         }
 
         public function setHost(string $host)
         {
                 $this->host = $host;
-                $this->dbName = explode('.', $host)[1] ?? 'crawler';
+                $domain = explode('.', $host);
+
+                if(count($domain)>2) {
+                        unset($domain[0]);
+                }
+                $this->dbName = implode('_', $domain);
+                if(!empty($this->dbPrefix)) {
+                        $this->dbName = $this->dbPrefix.'_'.$this->dbName;
+                }
+
+                $this->_fixDbName();
                 $this->urls = $this->getSet($host.':'.date('ymd').':urls', $this->cache);
                 $this->got = $this->getSet($host.':'.date('ymd').':got', $this->cache);
+                $this->clear();
+        }
+
+        private function _fixDbName()
+        {
+                $this->dbName = str_replace('.','_', $this->dbName);
+        }
+
+        public function setDbPrefix(string $prefix)
+        {
+                $this->dbPrefix = $prefix;
         }
 
         public function addUrls(array $urls)
         {
-                if($this->host == '') {
-                        $url = parse_url($urls[0]);
-                        $this->setHost($url['host']);
-                }
-
-                $got = $this->got->getAll();
-                $diff = array_diff($urls, $got);
-                if(!empty($diff)) {
-                        $this->urls->addValues($diff);
-                }
+              $got = $this->got->getAll();
+              if(!is_array($got)) {
+                      $diff = array_diff($urls, $got);
+                      if (!empty($diff)) {
+                              $this->urls->addValues($diff);
+                      }
+              }else{
+                      $this->urls->addValues($urls);
+              }
         }
 
         public function getOne()
@@ -59,10 +82,8 @@ class Udn
 
         public function setContent(string $url, array $content)
         {
-                //if(strpos($url,'story') !== false) {
-                        $table = 'crawler.'.$this->dbName.'_'.date('ymd');
-                        $this->db->insert(array_merge(['url'=>$url], $content),$table)->execute();
-                //}
+               $table = 'crawler.'.$this->dbName.'_'.date('ymd');
+               $this->db->insert(array_merge(['url'=>$url], $content),$table)->execute();
         }
 
         public function clear()

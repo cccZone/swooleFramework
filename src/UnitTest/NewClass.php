@@ -25,6 +25,5 @@ class NewClass
                 $urls1->setKey('b');
                 $urls->addValue('1111');
                 $urls1->addValue('22222');
-                var_dump($urls, $urls1);
         }
 }

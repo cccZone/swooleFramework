@@ -14,10 +14,7 @@ class Crawler
         protected $urlManager;
         protected $parserManager;
         protected $downloadManager;
-        protected $init = [
-                'urls'  =>      [],
-                'path'  =>      ''
-        ];
+
         public function __construct(Downloader $downloader, Parse $parser, Url $url)
         {
                 $this->downloadManager = $downloader;
@@ -25,18 +22,11 @@ class Crawler
                 $this->urlManager = $url;
         }
 
-        public function initUrls(array $urls, string $path = '')
+        public function initUrls(string $path = '')
         {
-               $this->init['urls'] = $urls;
-               $this->init['path'] = $path;
-               $this->reset();
+               $this->parserManager->setPath($path);
         }
 
-        public function reset()
-        {
-                $this->urlManager->addUrls($this->init['urls']);
-                $this->parserManager->setPath($this->init['path']);
-        }
 
         public function clear()
         {
@@ -48,7 +38,27 @@ class Crawler
                 return $this->urlManager->getOne();
         }
 
-        public function run(string $url)
+        public function run(string $url = '')
+        {
+                if($url == '') {
+                        while (true) {
+                                try {
+                                        $url = $this->getUrl();
+                                        if($url=='') {
+                                                break;
+                                        }
+                                        $this->_run($url);
+                                }catch (\Exception $exception) {
+
+                                        file_put_contents('exception', date('Y-m-d H:i:s').":\r\n".$exception->getTraceAsString()."\r\n\r\n", FILE_APPEND);
+                                }
+                        }
+                }else {
+                        $this->_run($url);
+                }
+        }
+
+        private function _run(string $url)
         {
                 $this->downloadManager->setUrl($url);
                 $this->downloadManager->download(function ($url, $content) {
@@ -65,17 +75,13 @@ class Crawler
 
         public static function getCrawler(array $data): Crawler
         {
-                if (!is_array($data)) {
-                        $data = json_decode($data, true);
-                }
-
                 $urls = is_array($data['url']) ? $data['url'] : [$data['url']];
+                $info =  parse_url($urls[0]);
                 $path = $data['path'] ?? '';
-                $core = Core::getInstant();
-                $task = new Crawler(new Udn(), new Parse(), new Url($core->get('config'), $core->get('db'), $core->get('redis')));
-                $task->initUrls($urls, $path);
+                $task = new Crawler(new Udn(), new Parse(),  new Url($info['host'],$data['flag']??''));
+                $task->initUrls($path);
+                $task->run($urls[0]);
                 return $task;
-
         }
 
 }

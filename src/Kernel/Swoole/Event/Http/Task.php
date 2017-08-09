@@ -8,7 +8,7 @@ use Kernel\Core;
 use Kernel\Swoole\Event\Event;
 use Kernel\Swoole\Event\EventTrait;
 use Library\Crawler\Crawler;
-use Kernel\Core\Cache\Redis\Hash;
+use Core\Cache\Type\Hash;
 
 class Task implements Event
 {
@@ -61,44 +61,28 @@ class Task implements Event
                 $task = Crawler::getCrawler($data);
                 $task->run($task->getUrl());
                 $hash = $this->getHash(self::KEY.$data['flag'], $this->redis);
-
-                $tickId = $server->tick($data['interval'] * self::BASE_NUM, function ($id) use(&$task, $server, $data, $taskId) {
+                $crawlerTickId = $server->tick(self::BASE_NUM, function ($id) use(&$task) {
+                        $url = $task->getUrl();
+                        echo $url."\r\n";
+                        if(!empty($url)) {
+                                $task->run($url);
+                        }else{
+                                $task->clear();
+                                $task->reset();
+                        }
+                });
+                $reloadTickId = $server->tick($data['interval'] * self::BASE_NUM, function ($id) use(&$task, $server, $data) {
                         $task->clear();
-                        echo 'timer'."\r\n";
-                        $task = Crawler::getCrawler($data);
-                        $tickId = $server->tick(self::BASE_NUM, function ($id) use(&$task, $server, $data, $taskId) {
-                                $url = $task->getUrl();
-                                if(!empty($url)) {
-                                        $task->run($url);
-                                }else{
-                                        $task->clear();
-                                        $task->reset();
-                                }
-                        });
-                        \swoole_timer_clear($tickId);
                 });
                 $hash->setField('taskId', $taskId);
                 $hash->setField('time', time());
-                $hash->setField('tickId',$tickId);
-
+                $hash->setField('reloadTickId', $reloadTickId);
+                $hash->setField('crawlerTickId', $crawlerTickId);
         }
 
         private function _reload(array $data, \swoole_server $server, $taskId)
         {
-                $hash = $this->getHash(self::KEY.$data['flag'], $this->redis);
-                if($hash->hasKey()) {
-                        $oldTaskId = $hash->getField('taskId');
-                        if($oldTaskId == $taskId) {
-                                return ;
-                        }
-                        $hash->setField('taskId', $taskId);
-                        $server->sendMessage('kill', $oldTaskId);
-                        $data['action'] = 'crawler';
-                        unset($hash);
-                        $this->_crawler($data, $server, $taskId);
-                }else{
-                        $server->finish('reload');
-                }
+               $this->_stop($data, $server, false, $taskId);
         }
 
         private function _stop(array $data, \swoole_server $server, bool $finish = true, $taskId = '')
@@ -113,17 +97,22 @@ class Task implements Event
                         $oldTaskId = $hash->getField('taskId');
                 }
                 $oldTaskId = intval($oldTaskId);
-                $oldTickId = intval($hash->getField('tickId'));
-
+                $crawlerTickId = intval($hash->getField('crawlerTickId'));
+                $reloadTickId = intval($hash->getField('reloadTickId'));
                 if($finish) {
                         $hash->delKey();
                         $server->sendMessage('kill', $oldTaskId);
-                        \swoole_timer_clear($oldTickId);
+                        if(!empty($crawlerTickId)) {
+                                \swoole_timer_clear($crawlerTickId);
+                        }
+                        if(!empty($reloadTickId)) {
+                                \swoole_timer_clear($crawlerTickId);
+                        }
                         $server->finish('stop');
                 }
         }
 
-        private function getHash(string $key, Core\Cache\Redis $redis) : Hash
+        private function getHash(string $key, Core\Cache\Redis $redis) : Core\Cache\Type\Hash
         {
                 $class = new Hash($redis);
                 $class->setKey($key);
