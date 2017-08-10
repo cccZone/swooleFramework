@@ -37,27 +37,7 @@ class Crawler
                 return $this->urlManager->getOne();
         }
 
-        public function run(string $url = '')
-        {
-                if($url == '') {
-                        while (true) {
-                                try {
-                                        $url = $this->getUrl();
-                                        //echo "url:".$url."\r\n";
-                                        if($url=='') {
-                                                break;
-                                        }
-                                        $this->_run($url);
-                                }catch (\Exception $exception) {
-                                        file_put_contents('exception', date('Y-m-d H:i:s').":\r\n".$exception->getTraceAsString()."\r\n\r\n", FILE_APPEND);
-                                }
-                        }
-                }else {
-                        $this->_run($url);
-                }
-        }
-
-        private function _run(string $url)
+        public function runOne(string $url)
         {
                 $this->downloadManager->setUrl($url);
                 $this->downloadManager->download(function ($url, $content) {
@@ -80,7 +60,7 @@ class Crawler
                 $task = new Crawler(new Udn(), new Parse(),  new Url($info['host'],$data['flag']??''));
                 $task->clear();
                 $task->initUrls($path);
-                $task->run($urls[0]);
+                $task->runOne($urls[0]);
                 return $task;
         }
 

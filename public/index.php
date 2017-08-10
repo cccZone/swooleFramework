@@ -4,6 +4,7 @@ include '../vendor/autoload.php';
 include '../src/Kernel/Core.php';
 $app = new \Kernel\Core([ realpath('../src')], [realpath('../conf')]);
 //var_dump($app->get('config'));
+
 $app->serverStart($app->get('http'), function () use($app){
 
 });

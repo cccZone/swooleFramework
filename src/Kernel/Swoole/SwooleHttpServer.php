@@ -10,7 +10,7 @@ use Kernel\Server;
 class SwooleHttpServer implements Server
 {
         const EVENT = [
-                'request','packet','pipeMessage','task','finish','close'
+                'request'//,'packet','pipeMessage','task','finish','close'
         ];
         protected $server;
 

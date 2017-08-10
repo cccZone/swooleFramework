@@ -23,6 +23,7 @@ class Request implements Event
 
 
         const ACTION_CRAWLER = 'crawler';
+        const ACTION_START = 'start';
         const ACTION_KILL = 'kill';
         const ACTION_RELOAD = 'reload';
         const ACTION_STOP = 'stop';
@@ -58,6 +59,7 @@ class Request implements Event
 
                 if(isset($data['action']) and isset($data['flag'])) {
                         switch ($data['action']) {
+                                case self::ACTION_START:
                                 case self::ACTION_CRAWLER:
                                         return $this->_crawler($data);
                                 case self::ACTION_KILL:
@@ -77,7 +79,6 @@ class Request implements Event
                 $config = Core::getInstant()->get('config');
                 $redis = new Redis($config, false);
                 $class = new Hash($redis);
-                //$class->select(5);
                 $class->setKey($key);
                 return $class;
         }
@@ -99,21 +100,11 @@ class Request implements Event
         {
                 $processId = -1;
                 $hash = $this->getHash(self::KEY.$data['flag']);
-                if($hash->hasKey()) {
-                        $cache = $hash->getAll();
-                        $processId = $cache['processId'] ?? '';
-//                        $tickId = $cache['tickId'] ?? '';
-//                        if (!empty($tickId)) {
-//                                if($cache['workerId'] != $this->server->worker_id) {
-//                                        $this->server->sendMessage(json_encode(["action" => "killTick", "tickId" => $tickId]), $cache['workerId']);
-//                                }else {
-//                                        echo "kill tick ".$tickId.PHP_EOL;
-//                                        \swoole_timer_clear($tickId);
-//                                }
-//                        }
-                        if (!empty($processId)) {
-                                $hash->setField('stop', 1);
-                                $this->_delProcess($processId);
+                $cache = $hash->getAll();
+                $hash->setField('stop', 1);
+                if (isset($cache['processId']) and $cache['stop'] == '0') {
+                        if (!empty($cache['processId'])) {
+                                $this->_delProcess($cache['processId']);
                         }
                 }
                 unset($hash);
@@ -161,8 +152,23 @@ class Request implements Event
         private function _doCrawler(array $data)
         {
                 $process = new \swoole_process(function () use ($data){
-                        $task = Crawler::getCrawler($data);
-                        $task->run();
+                       $task = Crawler::getCrawler($data);
+                       while (true) {
+                               try {
+                                       $url = $task->getUrl();
+                                       echo "url:".$url."\r\n";
+                                       if($url=='') {
+                                               break;
+                                       }
+                                       $task->runOne($url);
+                               }catch (\Exception $exception) {
+                                       file_put_contents('exception', date('Y-m-d H:i:s').":\r\n".$exception->getTraceAsString()."\r\n\r\n", FILE_APPEND);
+                               }
+                               //不同workerId定时器共用一个问题  包括swoole_timer_tick swoole_time_afer都有此问题
+                               //需要在while(true)里面加入休眠释放CPU控制权
+                               usleep(20000);
+                       }
+
                 });
                 $processId =  $process->start();
                 $process->name($data['flag']);
@@ -173,8 +179,7 @@ class Request implements Event
         {
                 $hash = $this->getHash(self::KEY.$data['flag']);
                 $cache = $hash->getAll();
-                echo "cache ".json_encode($cache).PHP_EOL;
-                echo "data ".json_encode($data).PHP_EOL;
+
                 if(isset($cache['stop'])) {
                         if($cache['stop'] == 0) {
                                 $processId = $this->_doCrawler($data);
@@ -191,22 +196,21 @@ class Request implements Event
                 $this->server->after($data['interval'] * 1000, function () use ($data) {
                         $hash = $this->getHash(self::KEY . $data['flag']);
                         $cache = $hash->getAll();
-                        echo $this->server->worker_id.PHP_EOL;
                         if (isset($cache['processId']) and $cache['stop'] == '0') {
-                                echo "{$data['flag']} stop : {$cache['stop']}" . PHP_EOL;
-                                echo "reload " . $data['flag'] . PHP_EOL;
+                                $this->_start($data);
                                 $this->_delProcess($cache['processId']);
+                        }else{
+                                $hash->delKey();
                         }
-                        //不同workerId定时器共用一个问题  包括swoole_timer_tick swoole_time_afer都有此问题
-                        $this->_start($data);
+
                 });
 
-                return ['processId' => $processId ?? ($cache['processId'] ?? '-1')];
+                return ['processId' => $processId];
         }
 
         private function _delProcess($processId)
         {
-                $this->server->tick(1000,function ($id) use($processId){
+                $this->server->tick(20,function ($id) use($processId){
                         echo "kill processId".$processId.PHP_EOL;
                         \swoole_process::kill($processId);
                         \swoole_process::wait(true);
