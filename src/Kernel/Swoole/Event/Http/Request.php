@@ -161,14 +161,13 @@ class Request implements Event
                                                break;
                                        }
                                        $task->runOne($url);
-                               }catch (\Exception $exception) {
+                               } catch (\Exception $exception) {
                                        file_put_contents('exception', date('Y-m-d H:i:s').":\r\n".$exception->getTraceAsString()."\r\n\r\n", FILE_APPEND);
                                }
                                //不同workerId定时器共用一个问题  包括swoole_timer_tick swoole_time_afer都有此问题
                                //需要在while(true)里面加入休眠释放CPU控制权
                                usleep(20000);
                        }
-
                 });
                 $processId =  $process->start();
                 $process->name($data['flag']);
