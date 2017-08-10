@@ -19,8 +19,10 @@ class PipeMessage implements Event
         public function doEvent(\swoole_server $server, $src_worker_id, $data)
         {
                 echo "#{$server->worker_id} message from #$src_worker_id: $data\n";
-                if($data == 'kill') {
-                        $server->finish('');
+
+                $data = json_decode($data, true);
+                if(isset($data['action']) and $data['action'] == 'killTick') {
+                        \swoole_timer_del($data['tickId']);
                 }
         }
 }

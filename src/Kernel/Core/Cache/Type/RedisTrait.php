@@ -7,6 +7,8 @@ namespace Kernel\Core\Cache\Type;
 trait RedisTrait
 {
         protected $_key;
+        /* @var \Redis $_redis */
+        protected $_redis;
         public function select(int $db)
         {
                 $this->_redis->select($db);
@@ -35,6 +37,7 @@ trait RedisTrait
          */
         public function delKey() : bool
         {
+                echo $this->_key.PHP_EOL;
                 return $this->_redis->del($this->_key) > 0 ? true : false;
         }
 

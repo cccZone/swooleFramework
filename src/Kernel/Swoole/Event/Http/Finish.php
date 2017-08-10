@@ -20,8 +20,6 @@ class Finish implements Event
         public function doEvent(\swoole_server $server, $task_id, $data)
         {
                 echo "Finish: $task_id say :$data".PHP_EOL;
-//                if(isset($data['interval']) and $data['interval']>0) {
-//                        $server->task($data);
-//                }
+
         }
 }

@@ -3,7 +3,6 @@
 
 namespace Library\Crawler;
 
-use Kernel\Core;
 use Library\Crawler\Download\Downloader;
 use Library\Crawler\Download\Udn;
 use Library\Crawler\Parse\Udn as Parse;
@@ -44,12 +43,12 @@ class Crawler
                         while (true) {
                                 try {
                                         $url = $this->getUrl();
+                                        //echo "url:".$url."\r\n";
                                         if($url=='') {
                                                 break;
                                         }
                                         $this->_run($url);
                                 }catch (\Exception $exception) {
-
                                         file_put_contents('exception', date('Y-m-d H:i:s').":\r\n".$exception->getTraceAsString()."\r\n\r\n", FILE_APPEND);
                                 }
                         }
@@ -79,6 +78,7 @@ class Crawler
                 $info =  parse_url($urls[0]);
                 $path = $data['path'] ?? '';
                 $task = new Crawler(new Udn(), new Parse(),  new Url($info['host'],$data['flag']??''));
+                $task->clear();
                 $task->initUrls($path);
                 $task->run($urls[0]);
                 return $task;

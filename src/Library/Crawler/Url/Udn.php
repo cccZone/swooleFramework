@@ -6,7 +6,6 @@ namespace Library\Crawler\Url;
 use Kernel\Core;
 use Kernel\Core\Cache\Redis;
 use Kernel\Core\Cache\Type\Set;
-use function PHPSTORM_META\type;
 
 class Udn
 {
@@ -15,17 +14,19 @@ class Udn
         /* @var $got Set */
         protected $got;
         protected $db;
-        protected $cache;
         protected $host;
         protected $dbName;
         protected $dbPrefix;
-        public function __construct(string $host, string $prefix)
+        public function __construct(string $host, string $dbName = '')
         {
                 $core = Core::getInstant();
-                $this->db = $core->get('db');
-                $this->cache = $core->get('redis');
+                /* @var \Kernel\Core\DB\Mongodb $db */
+                $db = $core->get('db');
+                $this->db = $db;
                 $this->setHost($host);
-                $this->setDbPrefix($prefix);
+                if(!empty($dbName)) {
+                        $this->setDbName($dbName);
+                }
         }
 
         public function setHost(string $host)
@@ -42,8 +43,8 @@ class Udn
                 }
 
                 $this->_fixDbName();
-                $this->urls = $this->getSet($host.':'.date('ymd').':urls', $this->cache);
-                $this->got = $this->getSet($host.':'.date('ymd').':got', $this->cache);
+                $this->urls = $this->getSet($host.':'.date('ymd').':urls');
+                $this->got = $this->getSet($host.':'.date('ymd').':got');
                 $this->clear();
         }
 
@@ -52,9 +53,9 @@ class Udn
                 $this->dbName = str_replace('.','_', $this->dbName);
         }
 
-        public function setDbPrefix(string $prefix)
+        public function setDbName(string $name)
         {
-                $this->dbPrefix = $prefix;
+                $this->dbName = $name;
         }
 
         public function addUrls(array $urls)
@@ -83,7 +84,13 @@ class Udn
         public function setContent(string $url, array $content)
         {
                $table = 'crawler.'.$this->dbName.'_'.date('ymd');
-               $this->db->insert(array_merge(['url'=>$url], $content),$table)->execute();
+               $exists = $this->db->select('_id')->from($table)->where('url=?',[$url])->fetch(false);
+               $content = array_merge(['url'=>$url], $content);
+               if(!empty($exists)) {
+                       $this->db->from($table)->update($content)->where('_id=?',[$exists['_id']])->execute();
+               } else {
+                       $this->db->insert(array_merge(['url' => $url], $content), $table)->execute();
+               }
         }
 
         public function clear()
@@ -93,9 +100,10 @@ class Udn
         }
 
 
-        private function getSet(string $key, Redis $redis)
+        private function getSet(string $key)
         {
-                $class = new Set($redis);
+                $class = new Set(new Redis(Core::getInstant()->get('config'), false));
+               // $class->select(5);
                 $class->setKey($key);
                 return $class;
         }
